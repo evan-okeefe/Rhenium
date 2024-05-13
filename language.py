@@ -56,13 +56,12 @@ class language:
         contentAsList = []
         for element in range(0, len(content)):
             contentAsList.append(content[element])
-        
         #Create Item To Print
         value = ""
         insideQuotes = False
         variable = False
         tempString = ""
-        variableName = ""
+        variableName = ''
         
         for char in contentAsList:
             if char == '"':
@@ -70,16 +69,37 @@ class language:
                     insideQuotes = False
                 else:
                     insideQuotes = True
-            elif char == ' ' and not(insideQuotes):
-                pass
-            elif char == '+' and not(insideQuotes):
-                tempString += ' '
-            elif char == ',' and not(insideQuotes):
-                tempString += ' '
-            elif not(char.isnumeric()) and not(insideQuotes):
-                self.error("string outside of quotation marks")
-            else:
-                tempString += char
+
+            if char == "{":
+                variable = True
+            elif char == "}":
+                variable = False
+            
+            if variable:
+                if char == '{' or char == '}':
+                    pass
+                else: 
+                    variableName += char
+            elif not(variable):
+                if variableName == '':
+                    if char == ' ' and not(insideQuotes):
+                        pass
+                    elif char == '+' and not(insideQuotes):
+                        tempString += ' '
+                    elif char == ',' and not(insideQuotes):
+                        tempString += ''
+                    elif char == '"':
+                        pass
+                    elif not(char.isnumeric()) and not(insideQuotes):
+                        print(tempString)
+                        print(char)
+                        print(insideQuotes)
+                        self.error("string outside of quotation marks")
+                    else:
+                        tempString += char
+                else:
+                    tempString += str(self.vars[variableName])
+                    variableName = ''
         value += tempString
         
     
