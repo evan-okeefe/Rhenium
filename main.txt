@@ -1,0 +1,15 @@
+let var1 = letter
+
+let var2 = 15
+
+let var3 = 1.5
+
+let var4 = -5
+
+let var5 = true
+
+let var6 = ["h", "e", "l", "l", "o"]
+
+print("Hello World" + 15 + "HAHA")
+
+#print({var1})
