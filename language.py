@@ -82,6 +82,7 @@ class language:
                 tempString += char
         value += tempString
         
+    
         print(value)
     
     def createVar(self, line):

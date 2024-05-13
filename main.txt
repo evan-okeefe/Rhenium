@@ -10,6 +10,6 @@ let var5 = true
 
 let var6 = ["h", "e", "l", "l", "o"]
 
-print("Hello World" + 15 + "HAHA")
+#print("Hello World" + 15 + "HAHA")
 
-#print({var1})
+print({var1})
