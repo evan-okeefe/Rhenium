@@ -179,7 +179,7 @@ class language:
             if result == int(result):
                 result = int(result)
             else:
-                result = float_value
+                result = float(result)
         except SyntaxError:
             language.error(f"Calc syntax error | Expression: {operation} | Line: {self.currentLine}")
 

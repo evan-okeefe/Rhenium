@@ -8,7 +8,7 @@ print({str2})
 
 
 
-var num1 = 5
+var num1 = 5.5
 
 var num2 = 20
 
@@ -30,7 +30,7 @@ write result = calc num1 + num2 * num3 / num4 - num5 + num6
 
 
 print("Lets do this to test out the langauge by doing this meth calculation" + {num1} + "+" + {num2} + "x" + {num3} + "/" + {num4} + "-" + {num5} + "+" + {num6})
-print("the expected result is 9")
+print("the expected result is 9.5")
 print("the calculated result is " + {result})
 print("hopefully the two results match up")
 
