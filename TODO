@@ -1,5 +1,4 @@
 TO ADD:
--Basic Algebra
 -conditionals
 
 POSSIBLY ADD:
@@ -8,6 +7,8 @@ POSSIBLY ADD:
 -Basic Python Libraries
 
 ADDED:
+-write function (write new values to existing variables)
+-Basic Algebra (using write var1 = calc 1 + 2, etc.)
 -comments
 -print
 -variables
