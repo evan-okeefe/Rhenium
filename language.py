@@ -57,7 +57,6 @@ class language:
             if self.jumpLine != 0:
                 self.jumpLine -= 1
             elif task != "":
-
                 # print
                 if task.startswith("print"):
                     start_index = task.find("(")
@@ -68,8 +67,8 @@ class language:
 
                         self.printUtils(content)
                 # comment
-                # elif task.startswith("//"):
-                #     print(f"comment at line: {self.currentLine}")
+                elif task.startswith("//"):
+                    print(f"comment at line: {self.currentLine}")
                 # variables
                 elif task.startswith("var"):
                     self.createVar(task)
@@ -79,6 +78,10 @@ class language:
                 # loop
                 elif task.startswith("loop"):
                     self.loopFunc(task)
+                elif task.startswith("end"):
+                    pass
+                elif not task.isspace():
+                    language.error(f"Unknown Task | Task: {task} | Line: {self.currentLine}")
 
     def evaluateVar(self, content):
         # handling var types in python, maybe change later if feel like :|
