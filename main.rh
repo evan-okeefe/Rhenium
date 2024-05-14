@@ -1,0 +1,7 @@
+var var1 = letter
+
+var var4 = -5
+
+var var5 = 1 + 5
+
+print("Hello World" + 15 + {var4}, {var1} + {var5})

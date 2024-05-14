@@ -48,7 +48,7 @@ class language:
             elif task.startswith("//"):
                 print("comment")
             #variables
-            elif task.startswith("let"):
+            elif task.startswith("var"):
                 self.createVar(task)
     
     def printUtils(self, content):
@@ -106,7 +106,7 @@ class language:
         print(value)
     
     def createVar(self, line):
-        line = line.replace('let', '', 1)
+        line = line.replace('var', '', 1)
         
         codeToClean = line
         cleanedCode = []
