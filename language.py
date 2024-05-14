@@ -1,6 +1,7 @@
 class language:
 
     def __init__(self, code):
+        self.jumpLine = 0
         self.operons = ['+', '-', '*', '/']
         self.codeSplitLinePos = []
         self.code = code
@@ -54,27 +55,30 @@ class language:
         for i, task in enumerate(code):
             if task != "":
                 self.currentLine = i+startLinePos+1
-                # print
-                if task.startswith("print"):
-                    start_index = task.find("(")
-                    end_index = task.find(")")
-                    if start_index != -1 and end_index != -1:
-                        # Extract content between parentheses
-                        content = task[start_index + 1:end_index]
+                if self.jumpLine != 0:
+                    self.jumpLine -= 1
+                else:
+                    # print
+                    if task.startswith("print"):
+                        start_index = task.find("(")
+                        end_index = task.find(")")
+                        if start_index != -1 and end_index != -1:
+                            # Extract content between parentheses
+                            content = task[start_index + 1:end_index]
 
-                        self.printUtils(content)
-                # comment
-                # elif task.startswith("//"):
-                #     print(f"comment at line: {self.currentLine}")
-                # variables
-                elif task.startswith("var"):
-                    self.createVar(task)
-                # write to variables
-                elif task.startswith("write"):
-                    self.writeToVar(task)
-                # loop
-                elif task.startswith("loop"):
-                    self.loopFunc(task)
+                            self.printUtils(content)
+                    # comment
+                    # elif task.startswith("//"):
+                    #     print(f"comment at line: {self.currentLine}")
+                    # variables
+                    elif task.startswith("var"):
+                        self.createVar(task)
+                    # write to variables
+                    elif task.startswith("write"):
+                        self.writeToVar(task)
+                    # loop
+                    elif task.startswith("loop"):
+                        self.loopFunc(task)
 
     def evaluateVar(self, content):
         # handling var types in python, maybe change later if feel like :|
@@ -181,6 +185,8 @@ class language:
             if i == range(loopLength[0]):
                 del self.vars[indexName]
         # delete the index var after loop is over
+
+        self.jumpLine = self.currentLine+len(loopCode)
 
 
     def calcVar(self, content):
