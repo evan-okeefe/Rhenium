@@ -6,10 +6,11 @@ class language:
         self.code = code
         self.lineToParse = 0
         self.codeSplit = []
+        # code with empty lines (to keep track of call location)
+        self.rawCode = []
         self.vars = {}
         self.split()
-        self.clean()
-        self.parse()
+        self.parse(self.rawCode)
         self.currentLine = 0
 
     @staticmethod
@@ -22,14 +23,17 @@ class language:
 
     def split(self):
         codeToSplit = self.code.split(";")
+
         for val in codeToSplit:
             lines = val.split("\n")
+
             for line in lines:
                 if line.startswith("//"):
                     line = line.lstrip("\n")
-                    self.codeSplit.extend(line.split(";"))
+                    self.rawCode.extend(line.split(";"))
                 else:
-                    self.codeSplit.append(line)
+                    self.rawCode.append(line)
+        print(self.rawCode)
 
     def clean(self):
         codeToClean = self.codeSplit
@@ -44,28 +48,33 @@ class language:
         self.codeSplit = cleanedCode
         self.codeSplitLinePos = cleanedCodeLinePos
 
-    def parse(self):
+    # added code param, so I can choose the code to parse
+    # added startLinePos to keep track of line pos in loops
+    def parse(self, code, startLinePos=0):
+        for i, task in enumerate(code):
+            if task != "":
+                self.currentLine = i+startLinePos+1
+                # print
+                if task.startswith("print"):
+                    start_index = task.find("(")
+                    end_index = task.find(")")
+                    if start_index != -1 and end_index != -1:
+                        # Extract content between parentheses
+                        content = task[start_index + 1:end_index]
 
-        for i, task in enumerate(self.codeSplit):
-            self.currentLine = self.codeSplitLinePos[i]
-            # print
-            if task.startswith("print"):
-                start_index = task.find("(")
-                end_index = task.find(")")
-                if start_index != -1 and end_index != -1:
-                    # Extract content between parentheses
-                    content = task[start_index + 1:end_index]
-
-                    self.printUtils(content)
-            # comment
-            # elif task.startswith("//"):
-            #     print(f"comment at line: {self.currentLine}")
-            # variables
-            elif task.startswith("var"):
-                self.createVar(task)
-            # write to variables
-            elif task.startswith("write"):
-                self.writeToVar(task)
+                        self.printUtils(content)
+                # comment
+                # elif task.startswith("//"):
+                #     print(f"comment at line: {self.currentLine}")
+                # variables
+                elif task.startswith("var"):
+                    self.createVar(task)
+                # write to variables
+                elif task.startswith("write"):
+                    self.writeToVar(task)
+                # loop
+                elif task.startswith("loop"):
+                    self.loopFunc(task)
 
     def evaluateVar(self, content):
         # handling var types in python, maybe change later if feel like :|
@@ -132,7 +141,6 @@ class language:
         # grab name of var (cuts before declarationIndex)
         varName = task[:declarationIndex].strip()
 
-
         if not (varName in self.vars):
             language.error(f"Var does not exist | Var: {varName} | Line: {self.currentLine}")
 
@@ -141,6 +149,39 @@ class language:
         else:
             varEval = self.evaluateVar(varContent)
             self.vars[varName] = varEval
+
+    def loopFunc(self, task):
+        task = task.replace('loop', '', 1)
+        declarationIndex = task.index(",")
+        # grab content of var (cuts at declarationIndex)
+        loopLength = task[declarationIndex + 1:].strip()
+
+        # grab name of var (cuts before declarationIndex)
+        indexName = task[:declarationIndex].strip()
+        # create a new index var, so it can be used in the loop
+        loopLength = self.evaluateVar(str(loopLength))
+        if loopLength[1] != "int":
+            language.error(f"loop length not int | Var: {indexName} | Line: {self.currentLine}")
+
+
+        self.vars[indexName] = [0, "int"]
+        # all the lines of code between the loop
+        loopCode = []
+        for line in self.rawCode[self.currentLine:]:
+            if line != "end":
+                loopCode.append(line)
+            else:
+                break
+
+
+
+        for i in range(loopLength[0]):
+            self.vars[indexName] = [i, "int"]
+            self.parse(list(loopCode), self.currentLine)
+            if i == range(loopLength[0]):
+                del self.vars[indexName]
+        # delete the index var after loop is over
+
 
     def calcVar(self, content):
         content = content.replace('calc', '', 1)
@@ -154,13 +195,12 @@ class language:
                 usedOperons.append(char)
                 c_content = c_content.replace(char, "~")
 
-
         splitString = (c_content.strip()).split(" ~ ")
 
         operationList = []
         for i in range(len(splitString)):
             operationList.append(str(splitString[i]))
-            if i != len(splitString)-1:
+            if i != len(splitString) - 1:
                 operationList.append(str(usedOperons[i]))
         valueList = []
         for item in operationList:
