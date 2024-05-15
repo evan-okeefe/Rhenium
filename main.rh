@@ -36,7 +36,7 @@ print("hopefully the two results match up")
 
 print("next operation ")
 
-nl();
+blank();
 
 s num1 = -10
 
@@ -57,7 +57,7 @@ print("We can loop too)
 print({i})
 end
 
-nl()
+el()
 
 print("And we can do conditionals!")
 print("haha not really")
