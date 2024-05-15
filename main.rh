@@ -1,49 +1,63 @@
-var str1 = "this coding lang is for the shits and giggles"
+create str1 = "this programming lang is just for fun"
 
 print({str1})
 
-var str2 = "its capabilities are cool tho"
+create str2 = "its capabilities are cool tho"
 
 print({str2})
 
 
 
-var num1 = 5.5
+create num1 = 5.5
 
-var num2 = 20
+create num2 = 20
 
-var num3 = 5
+create num3 = 5
 
-var num4 = 10
+create num4 = 10
 
-var num5 = 12
+create num5 = 12
 
-var num6 = 6
+create num6 = 6
 
 
 
-var result = 0
+create result = 0
 
-write result = calc num1 + num2 * num3 / num4 - num5 + num6
+s result = calc num1 + num2 * num3 / num4 - num5 + num6
 // 5 + 20 * 5 / 10 - 12 + 6
 // expected result is 9
 
 
-print("Lets do this to test out the langauge by doing this meth calculation" + {num1} + "+" + {num2} + "x" + {num3} + "/" + {num4} + "-" + {num5} + "+" + {num6})
+print("Lets do test out the langauge by doing some math: " + {num1} + "+" + {num2} + "x" + {num3} + "/" + {num4} + "-" + {num5} + "+" + {num6})
 print("the expected result is 9.5")
 print("the calculated result is " + {result})
 print("hopefully the two results match up")
 
 print("next operation ")
-print("")
-write num1 = -10
 
-write result = calc num1 + num2 * num3 / num4 - num5 + num6
+nl();
+
+s num1 = -10
+
+s result = calc num1 + num2 * num3 / num4 - num5 + num6
 // 5 + 20 * 5 / 10 - 12 + 6
 // expected result is -1
 
 
-print("Lets do this to test out the langauge by doing this meth calculation" + {num1} + "+" + {num2} + "x" + {num3} + "/" + {num4} + "-" + {num5} + "+" + {num6})
+print("Lets do some more math!" + {num1} + "+" + {num2} + "x" + {num3} + "/" + {num4} + "-" + {num5} + "+" + {num6})
 print("the expected result is -6")
 print("the calculated result is " + {result})
 print("hopefully the two results match up")
+
+nl()
+
+loop i, 5
+print("We can loop too)
+print({i})
+end
+
+nl()
+
+print("And we can do conditionals!")
+print("haha not really")
