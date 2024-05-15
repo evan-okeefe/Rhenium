@@ -68,18 +68,25 @@ class language:
                         self.printUtils(content)
                 # comment
                 elif task.startswith("//"):
-                    print(f"comment at line: {self.currentLine}")
-                # variables
-                elif task.startswith("var"):
+                    pass
+                # create variables
+                elif task.startswith("create"):
                     self.createVar(task)
                 # write to variables
-                elif task.startswith("write"):
-                    self.writeToVar(task)
+                elif task.startswith("set"):
+                    self.setVar(task)
                 # loop
                 elif task.startswith("loop"):
                     self.loopFunc(task)
                 elif task.startswith("end"):
                     pass
+                # blank line
+                elif task == "blank()":
+                    print("")
+                elif task == "nl()":
+                    print("")
+                elif task == "el()":
+                    print("")
                 elif not task.isspace():
                     language.error(f"Unknown Task | Task: {task} | Line: {self.currentLine}")
 
@@ -122,7 +129,7 @@ class language:
 
     def createVar(self, task):
 
-        task = task.replace('var', '', 1)
+        task = task.replace('create', '', 1)
         # find index of var content using "=" char
         declarationIndex = task.index("=")
         # grab content of var (cuts at declarationIndex)
@@ -137,10 +144,10 @@ class language:
         self.vars[varName] = varEval
 
     # write existing variable to new val
-    def writeToVar(self, task):
+    def setVar(self, task):
         # again letting python handle the operation :(
 
-        task = task.replace('write', '', 1)
+        task = task.replace('set', '', 1)
         # find index of var content using "=" char
         declarationIndex = task.index("=")
         # grab content of var (cuts at declarationIndex)
