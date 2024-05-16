@@ -1,28 +1,28 @@
-create str1 = "this programming lang is just for fun"
+make str1 = "this programming lang is just for fun"
 
 print({str1})
 
-create str2 = "its capabilities are cool tho"
+make str2 = "its capabilities are cool tho"
 
 print({str2})
 
 
 
-create num1 = 5.5
+make num1 = 5.5
 
-create num2 = 20
+make num2 = 20
 
-create num3 = 5
+make num3 = 5
 
-create num4 = 10
+make num4 = 10
 
-create num5 = 12
+make num5 = 12
 
-create num6 = 6
+make num6 = 6
 
 
 
-create result = 0
+make result = 0
 
 set result = calc num1 + num2 * num3 / num4 - num5 + num6
 // 5 + 20 * 5 / 10 - 12 + 6
@@ -38,7 +38,7 @@ print("next operation ")
 
 blank();
 
-set num1 = -10
+set num1 = 10
 
 set result = calc num1 + num2 * num3 / num4 - num5 + num6
 // 5 + 20 * 5 / 10 - 12 + 6
