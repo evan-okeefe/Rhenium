@@ -70,7 +70,7 @@ class language:
                 elif task.startswith("//"):
                     pass
                 # create variables
-                elif task.startswith("create"):
+                elif task.startswith("make"):
                     self.createVar(task)
                 # write to variables
                 elif task.startswith("set"):
@@ -98,7 +98,7 @@ class language:
                         
                         varValue = input(question + "\n")
                         
-                        varToCreate = ("create " + varName + ' = "' + varValue + '"')
+                        varToCreate = ("make " + varName + ' = "' + varValue + '"')
                         
                         self.createVar(varToCreate)
                 # blank line
@@ -150,7 +150,7 @@ class language:
 
     def createVar(self, task):
 
-        task = task.replace('create', '', 1)
+        task = task.replace('make', '', 1)
         # find index of var content using "=" char
         declarationIndex = task.index("=")
         # grab content of var (cuts at declarationIndex)
