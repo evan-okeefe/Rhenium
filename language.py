@@ -80,6 +80,27 @@ class language:
                     self.loopFunc(task)
                 elif task.startswith("end"):
                     pass
+                #input
+                elif task.startswith("input"):
+                    start_index = task.find("(")
+                    end_index = task.find(")")
+                    if start_index != -1 and end_index != -1:
+                        # Extract content between parentheses
+                        content = task[start_index + 1:end_index]
+                        split = content.split(',', 1)
+                        
+                        varName = split[0]
+                        
+                        question = split[1]
+                        question = question.replace('"', '')
+                        question = question.replace(' ', '', 1)
+                        
+                        
+                        varValue = input(question + "\n")
+                        
+                        varToCreate = ("create " + varName + ' = "' + varValue + '"')
+                        
+                        self.createVar(varToCreate)
                 # blank line
                 elif task == "blank()":
                     print("")
