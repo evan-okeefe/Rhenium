@@ -24,7 +24,7 @@ create num6 = 6
 
 create result = 0
 
-s result = calc num1 + num2 * num3 / num4 - num5 + num6
+set result = calc num1 + num2 * num3 / num4 - num5 + num6
 // 5 + 20 * 5 / 10 - 12 + 6
 // expected result is 9
 
@@ -38,9 +38,9 @@ print("next operation ")
 
 blank();
 
-s num1 = -10
+set num1 = -10
 
-s result = calc num1 + num2 * num3 / num4 - num5 + num6
+set result = calc num1 + num2 * num3 / num4 - num5 + num6
 // 5 + 20 * 5 / 10 - 12 + 6
 // expected result is -1
 
@@ -59,5 +59,14 @@ end
 
 el()
 
+print("LOOK! We can even take input")
+
+input(userInput, "Say something, I'll say it back!")
+
+print("'", {userInput}, "'" )
+end
+
+el()
+
 print("And we can do conditionals!")
-print("haha not really")
+print("haha not yet")
