@@ -19,8 +19,21 @@ class language:
         print("! " + message + " !")
         quit()
 
-    def debug(self):
-        print(self.vars)
+    def listVars(self):
+        toList = self.vars.keys()
+        toList = str(toList)
+        toList = toList.replace("dict_keys([", '')
+        toList = toList.replace("'", '')
+        toList = toList.replace("])", '')
+        print("Variables: " + toList)
+    
+    def listVarVals(self):
+        toList = self.vars.values()
+        toList = str(toList)
+        toList = toList.replace("dict_keys([", '')
+        toList = toList.replace("'", '')
+        toList = toList.replace("])", '')
+        print("(Work On More) Values: " + toList)
 
     def split(self):
         codeToSplit = self.code.split("\n")
@@ -33,7 +46,6 @@ class language:
                     line = line.lstrip("\n")
                 else:
                     self.rawCode.append(line)
-
 
     def clean(self):
         codeToClean = self.codeSplit
@@ -110,6 +122,11 @@ class language:
                     print("")
                 elif task == "el()":
                     print("")
+                # debug methods
+                elif task.startswith("rh."):
+                    task = task.replace("rh.", '')
+                    self.debug(task)
+                # error
                 elif not task.isspace():
                     language.error(f"Unknown Task | Task: {task} | Line: {self.currentLine}")
 
@@ -221,7 +238,6 @@ class language:
 
         self.jumpLine = len(loopCode)
 
-
     def calcVar(self, content):
         content = content.replace('calc', '', 1)
         c_content = content
@@ -317,3 +333,31 @@ class language:
         value += tempString
 
         print(value)
+        
+    def debug(self, task):
+        if task.startswith("variables."):
+            task = task.replace("variables.", '')
+            if task == "list()":
+                self.listVars()
+            elif task.startswith("list("):
+                task = task.replace('list(', '')
+                task = task.replace(')', '')
+                language.error(f'"rh.variables.listVars()" does not take any arguments | Argument: "{task}" | Line: {self.currentLine}')
+            elif task == "values()":
+                self.listVarVals()
+            elif task.startswith("values("):
+                task = task.replace('values(', '')
+                task = task.replace(')', '')
+                language.error(f'"rh.variables.values()" does not take any arguments | Argument: "{task}" | Line: {self.currentLine}')
+        elif task.startswith("error("):
+            start_index = task.find("(")
+            end_index = task.find(")")
+            if start_index != -1 and end_index != -1:
+                # Extract content between parentheses
+                content = task[start_index + 1:end_index]
+                            
+                content = content.replace('"', '')
+                            
+                language.error(content)
+        else:
+            language.error(f'Unkown function in "rh" | Expression: {task} | Line: {self.currentLine}')
