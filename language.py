@@ -1,3 +1,4 @@
+import time
 class language:
 
     def __init__(self, code):
@@ -80,6 +81,15 @@ class language:
                         content = task[start_index + 1:end_index]
 
                         self.printUtils(content)
+                # wait
+                elif task.startswith("wait"):
+                    start_index = task.find("(")
+                    end_index = task.find(")")
+                    if start_index != -1 and end_index != -1:
+                        # Extract content between parentheses
+                        content = task[start_index + 1:end_index]
+
+                        time.sleep(float(content))
                 # comment
                 elif task.startswith("//"):
                     pass
