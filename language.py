@@ -23,7 +23,7 @@ class language:
         print(self.vars)
 
     def split(self):
-        codeToSplit = self.code.split(";")
+        codeToSplit = self.code.split("\n")
 
         for val in codeToSplit:
             lines = val.split("\n")
@@ -31,7 +31,6 @@ class language:
             for line in lines:
                 if line.startswith("//"):
                     line = line.lstrip("\n")
-                    self.rawCode.extend(line.split(";"))
                 else:
                     self.rawCode.append(line)
 
@@ -57,6 +56,9 @@ class language:
             if self.jumpLine != 0:
                 self.jumpLine -= 1
             elif task != "":
+                # semicolons
+                if task.endswith(";"):
+                    task = task.rstrip(";")
                 # print
                 if task.startswith("print"):
                     start_index = task.find("(")
