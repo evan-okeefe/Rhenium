@@ -36,7 +36,7 @@ print("hopefully the two results match up")
 
 print("next operation ")
 
-blank();
+blank()
 
 set num1 = 10
 
@@ -53,18 +53,16 @@ print("hopefully the two results match up")
 nl()
 
 loop i, 5
-print("We can loop too)
-print({i})
-end
+    print("NOT NESTED" + {i})
+    loop x, 2
+        print("NESTED" + {x})
 
-el()
+print("cumming my pants rn cuz its working")
 
-print("LOOK! We can even take input")
 
-input(userInput, "Say something, I'll say it back!")
 
-print("'", {userInput}, "'" )
-end
+
+
 
 el()
 
