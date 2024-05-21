@@ -3,6 +3,7 @@ class language:
     def __init__(self, code):
         self.jumpLine = 0
         self.operons = ['+', '-', '*', '/']
+        self.conditionals = ['>', '<', '>=', '<=', '==', '!=']
         self.codeSplitLinePos = []
         self.code = code
         self.lineToParse = 0
@@ -101,8 +102,9 @@ class language:
                 # loop
                 elif task[0].startswith("loop"):
                     self.loopFunc(task)
-                elif task[0].startswith("end"):
-                    pass
+                #conditional
+                elif task[0].startswith("if"):
+                    self.conditional(task[0])
                 # input
                 elif task[0].startswith("input"):
                     start_index = task[0].find("(")
@@ -133,8 +135,6 @@ class language:
                 # error
                 elif not task[0].isspace():
                     language.error(f"Unknown Task | Task: {task[0]} | Line: {self.currentLine}")
-
-
 
     def evaluateVar(self, content):
         # handling var types in python, maybe change later if feel like :|
@@ -379,3 +379,20 @@ class language:
                 language.error(content)
         else:
             language.error(f'Unknown function in "rh" | Expression: {taskContent} | Line: {self.currentLine}')
+            
+    def conditional(self, content):
+        content = content.replace('if', '', 1)
+        
+        splitContent = list(content.split(" "))
+        
+        splitContent = [i for i in splitContent if i]
+        
+        for i in range(len(splitContent)):
+            if splitContent[i] in self.conditionals:
+                pass
+            elif splitContent[i] in self.vars.keys():
+                splitContent[i] = str(self.vars[splitContent[i]][0])
+                
+        modContent = ''.join(splitContent)
+        
+        print(eval(str(modContent)))
