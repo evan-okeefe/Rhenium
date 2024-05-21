@@ -395,4 +395,14 @@ class language:
                 
         modContent = ''.join(splitContent)
         
-        print(eval(str(modContent)))
+        if eval(str(modContent)):
+        
+            conCode = []
+            for line in self.rawCode[self.currentLine:]:
+                if self.indentData[line[1]] > self.indentData[self.currentLine-1]:
+                    conCode.append(line)
+                else:
+                    break
+                
+            self.parse(list(conCode), self.currentLine)
+            self.jumpLine = len(conCode)
