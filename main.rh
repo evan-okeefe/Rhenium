@@ -57,14 +57,27 @@ loop i, 5
     loop x, 2
         print("NESTED" + {x})
 
-print("cumming my pants rn cuz its working")
+nl()
 
-
-
+print("LOOK! We can even take input")
+input(userInput, "Say something, I'll say it back!")
+print("'", {userInput}, "'" )
 
 
 
 el()
 
 print("And we can do conditionals!")
-print("haha not yet")
+
+
+make var1 = 5
+make var2 = 3
+
+make var3 = 0
+    
+if var1 == 5
+    print("Var 1 is 5")
+    if var3 < var1
+        print("var3 is less than var1")
+        print("This is actually working")
+    print("Holy crap, it worked")
