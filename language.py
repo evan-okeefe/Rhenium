@@ -3,7 +3,7 @@ class language:
     def __init__(self, code):
         self.jumpLine = 0
         self.operons = ['+', '-', '*', '/']
-        self.conditionals = ['>', '<', '>=', '<=', '==', '!=']
+        self.conditionals = ['>', '<', '>=', '<=', '==', '!=', 'and', 'or', 'not']
         self.codeSplitLinePos = []
         self.code = code
         self.lineToParse = 0
@@ -389,7 +389,7 @@ class language:
         
         for i in range(len(splitContent)):
             if splitContent[i] in self.conditionals:
-                pass
+                splitContent[i] = str(" " + splitContent[i] + " ")
             elif splitContent[i] in self.vars.keys():
                 splitContent[i] = str(self.vars[splitContent[i]][0])
                 
