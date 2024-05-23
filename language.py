@@ -12,6 +12,7 @@ class language:
         self.rawCode = []
         self.indentData = []
         self.vars = {}
+        self.funcs = {}
         self.split()
         self.parse(self.rawCode)
         self.currentLine = 0
@@ -48,7 +49,7 @@ class language:
                 if line.startswith("//"):
                     line = line.lstrip("\n")
 
-                lineData = [line, i]
+                lineData = [line.lstrip(), i]
                 self.indentData.append(int(numSpaces/4))
                 self.rawCode.append(lineData)
 
@@ -102,9 +103,14 @@ class language:
                 # loop
                 elif task[0].startswith("loop"):
                     self.loopFunc(task)
-                #conditional
+                # conditional
                 elif task[0].startswith("if"):
-                    self.conditional(task[0])
+                    self.conditional(task)
+                # functions
+                elif task[0].startswith("func"):
+                    self.createFunction(task)
+                elif task[0].startswith("call"):
+                    self.callFunction(task)
                 # input
                 elif task[0].startswith("input"):
                     start_index = task[0].find("(")
@@ -221,6 +227,69 @@ class language:
         except KeyError:
             language.error(f"Var does not exist | Var: {taskContent} | Line: {self.currentLine}")
 
+
+    def createFunction(self, task):
+        name = task[0]
+        name = name.replace('func ', '', 1)
+        pIndex = name.find("(")
+        name = name[:pIndex]
+
+
+        start_index = task[0].find("(")
+        end_index = task[0].find(")")
+        params = None
+        if start_index != -1 and end_index != -1:
+            # Extract content between parentheses
+            params = task[0][start_index + 1:end_index]
+        else:
+            language.error(f"Syntax Error | Function: {task[0]} | Line: {self.currentLine}")
+        params = params.split(",")
+        params = [param.strip() for param in params]
+
+
+        funcCode = []
+        for line in self.rawCode[self.currentLine:]:
+            if self.indentData[line[1]] > self.indentData[self.currentLine - 1]:
+                funcCode.append(line)
+            else:
+                break
+
+        self.funcs[name] = [funcCode, params]
+
+        self.jumpLine += len(funcCode)
+
+
+    def callFunction(self, task):
+        name = task[0]
+        name = name.replace('call ', '', 1)
+        pIndex = name.find("(")
+        name = name[:pIndex]
+
+        start_index = task[0].find("(")
+        end_index = task[0].find(")")
+        params = None
+        if start_index != -1 and end_index != -1:
+            # Extract content between parentheses
+            params = task[0][start_index + 1:end_index]
+        else:
+            language.error(f"Syntax Error | Function: {task[0]} | Line: {self.currentLine}")
+        params = params.split(",")
+        params = [param.strip() for param in params]
+
+        if len(params) != len(self.funcs[name][1]):
+            language.error(f"Parameter Error | Function: {task[0]} | Line: {self.currentLine}")
+
+        for i, param in enumerate(params):
+            self.vars[self.funcs[name][1][i]] = self.evaluateVar(param)
+
+
+
+        self.parse(self.funcs[name][0])
+
+        for i, param in enumerate(params):
+            del self.vars[self.funcs[name][1][i]]
+
+
     def loopFunc(self, task):
         taskContent = task[0]
         taskContent = taskContent.replace('loop', '', 1)
@@ -324,7 +393,7 @@ class language:
                     pass
                 else:
                     variableName += char
-            elif not (variable):
+            elif not variable:
                 if variableName == '':
                     if char == ' ' and not (insideQuotes):
                         pass
@@ -359,7 +428,7 @@ class language:
                 taskContent = taskContent.replace('list(', '')
                 taskContent = taskContent.replace(')', '')
                 language.error(
-                    f'"rh.variables.listVars()" does not take any arguments | Argument: "{taskContent}" | Line: {self.currentLine}')
+                    f'"rh.variables.list()" does not take any arguments | Argument: "{taskContent}" | Line: {self.currentLine}')
             elif taskContent == "values()":
                 self.listVarVals()
             elif taskContent.startswith("values("):
@@ -380,8 +449,8 @@ class language:
         else:
             language.error(f'Unknown function in "rh" | Expression: {taskContent} | Line: {self.currentLine}')
             
-    def conditional(self, content):
-        content = content.replace('if', '', 1)
+    def conditional(self, task):
+        content = task[0].replace('if', '', 1)
         
         splitContent = list(content.split(" "))
         
@@ -406,3 +475,4 @@ class language:
                 
             self.parse(list(conCode), self.currentLine)
             self.jumpLine = len(conCode)
+
