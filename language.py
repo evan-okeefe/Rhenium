@@ -146,9 +146,45 @@ class language:
         # handling var types in python, maybe change later if feel like :|
         varType = "NaN"
         # see if it's an existing var
+
         if content in self.vars:
             varType = self.vars[content][1]
             content = self.vars[content][0]
+
+        if varType == "NaN" and content.find("/") != -1:
+            forwardSlashIndex = content.index("/")
+            # grab content of var (cuts at declarationIndex)
+            searchIndexes = content[forwardSlashIndex + 1:].strip()
+            # grab name of var (cuts before declarationIndex)
+            listName = content[:forwardSlashIndex].strip()
+            listContent = self.evaluateVar(listName)
+            if listName not in self.vars:
+                language.error(f"List does not exist | list: {listName} | Line: {self.currentLine}")
+
+            searchIndexes = searchIndexes.split("/")
+            currentItem = None
+            for index in searchIndexes:
+                if currentItem is None:
+                    currentItem = listContent[index]
+                else:
+                    currentItem = currentItem[index]
+
+            content = currentItem
+
+        if varType == "NaN" and content.startswith('[') and content.endswith(']'):
+            varType = "list"
+            start_index = content.find("[")
+            end_index = content.find("]")
+            items = None
+            if start_index != -1 and end_index != -1:
+                # Extract content between parentheses
+                items = content[start_index + 1:end_index]
+            else:
+                language.error(f"Syntax Error | list: {content} | Line: {self.currentLine}")
+            items = items.split(",")
+            items = [item.strip() for item in items]
+            content = [self.evaluateVar(item) for item in items]
+
 
         # str detection
         if varType == "NaN" and content.startswith('"') and content.endswith('"'):
