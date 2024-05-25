@@ -100,8 +100,8 @@ class language:
                 elif task[0].startswith("remove"):
                     self.removeList(task)
                 # replace value in list
-                elif task[0].startswith("replace"):
-                    self.replaceList(task)
+                elif task[0].startswith("swap"):
+                    self.swapList(task)
                 # write to variables
                 elif task[0].startswith("set"):
                     self.setVar(task)
@@ -160,6 +160,19 @@ class language:
             content = self.vars[content][0]
             return content, varType
 
+        if content.startswith("len:"):
+
+            content = content.replace('len:', '', 1)
+            # find index of var content using "=" char
+
+            contentEval = self.evaluateVar(content)
+
+            if contentEval[1] != "list":
+                language.error(
+                    f"List does not exist | list: {content} Type: {contentEval[0]} | Line: {self.currentLine}")
+            else:
+                content = len(contentEval[0])
+            return content, "int"
         if content.find("/") != -1:
             forwardSlashIndex = content.index("/")
             # grab content of var (cuts at declarationIndex)
@@ -182,7 +195,8 @@ class language:
                 currentVar = currentVar[current_index][0]
                 if not isinstance(currentVar, list):
                     break
-                currentContent = currentVar[current_index][1]
+
+                currentContent = "list"
 
             content = currentVar
             varType = currentContent
@@ -279,10 +293,11 @@ class language:
         # grab name of var (cuts before declarationIndex)
         varName = taskContent[:declarationIndex].strip()
 
-        varEval = self.evaluateVar(varContent)
-
-        # creating var key in vars dictionary
-        self.vars[varName] = varEval
+        if varContent.startswith("calc"):
+            self.vars[varName] = self.calcVar(varContent)
+        else:
+            varEval = self.evaluateVar(varContent)
+            self.vars[varName] = varEval
 
     # write existing variable to new val
     def setVar(self, task):
@@ -377,6 +392,38 @@ class language:
         # find index of var content using "=" char
 
         forwardSlashIndex = taskContent.index("/")
+        colinIndex = taskContent.index(":")
+        # grab content of var (cuts at declarationIndex)
+        searchIndexes = taskContent[forwardSlashIndex + 1:colinIndex].strip()
+        valueToInsert = taskContent[colinIndex + 1:].strip()
+        valueToInsert = self.evaluateVar(valueToInsert)
+
+        # grab name of var (cuts before declarationIndex)
+        listName = taskContent[:forwardSlashIndex].strip()
+
+        if listName not in self.vars:
+            language.error(f"List does not exist | list: {listName} | Line: {self.currentLine}")
+
+        searchIndexes = searchIndexes.split("/")
+        searchIndexes = [self.evaluateVar(index)[0] for index in searchIndexes]
+
+        # Initialize the variable to hold the current nested list
+        subList = self.vars[listName][0]
+        # Iterate through each index in the search_indices except the last one
+        for index in searchIndexes[:-1]:
+            # Update the result to be the sublist at the current index
+            subList = subList[index]
+
+        # Append the value_to_append to the sublist at the last index in search_indices
+        subList.insert(searchIndexes[-1], valueToInsert)
+
+    def removeList(self, task):
+        taskContent = task[0]
+
+        taskContent = taskContent.replace('remove', '', 1)
+        # find index of var content using "=" char
+
+        forwardSlashIndex = taskContent.index("/")
         # grab content of var (cuts at declarationIndex)
         searchIndexes = taskContent[forwardSlashIndex + 1:].strip()
 
@@ -386,33 +433,50 @@ class language:
         if listName not in self.vars:
             language.error(f"List does not exist | list: {listName} | Line: {self.currentLine}")
 
-        def append_to_nested_list(num_list, search_indices, value_to_append):
-            # Initialize the variable to hold the current nested list
-            result = num_list
+        searchIndexes = searchIndexes.split("/")
+        searchIndexes = [self.evaluateVar(index)[0] for index in searchIndexes]
 
-            # Iterate through each index in the search_indices except the last one
-            for index in search_indices[:-1]:
-                # Update the result to be the sublist at the current index
-                result = result[index]
+        # Initialize the variable to hold the current nested list
+        subList = self.vars[listName][0]
+        # Iterate through each index in the search_indices except the last one
+        for index in searchIndexes[:-1]:
+            # Update the result to be the sublist at the current index
+            subList = subList[index]
 
-            # Append the value_to_append to the sublist at the last index in search_indices
-            result[search_indices[-1]].append(value_to_append)
+        # Append the value_to_append to the sublist at the last index in search_indices
+        del subList[searchIndexes[-1]]
 
-        # Example usage
-        num_list = [1, [[10, 4, 3, 4], 19], 23]  # Original nested list
-        search_indices = [1, 0]  # Indices to specify the location to append
-        value_to_append = 5  # Value to append to the nested list
+    def swapList(self, task):
+        taskContent = task[0]
 
-        # Call the function to append the value to the specified location in the nested list
-        append_to_nested_list(num_list, search_indices, value_to_append)
+        taskContent = taskContent.replace('swap', '', 1)
+        # find index of var content using "=" char
 
-        # Print the modified nested list
-        print(num_list)  # Output should be [1, [[10, 4, 3, 4, 5], 19], 23]
+        forwardSlashIndex = taskContent.index("/")
+        colinIndex = taskContent.index(":")
+        # grab content of var (cuts at declarationIndex)
+        searchIndexes = taskContent[forwardSlashIndex + 1:colinIndex].strip()
+        valueToSwap = taskContent[colinIndex + 1:].strip()
+        valueToSwap = self.evaluateVar(valueToSwap)
+
+        # grab name of var (cuts before declarationIndex)
+        listName = taskContent[:forwardSlashIndex].strip()
+
+        if listName not in self.vars:
+            language.error(f"List does not exist | list: {listName} | Line: {self.currentLine}")
 
         searchIndexes = searchIndexes.split("/")
         searchIndexes = [self.evaluateVar(index)[0] for index in searchIndexes]
-        currentItem = self.vars[listName][0]
 
+        # Initialize the variable to hold the current nested list
+        subList = self.vars[listName][0]
+        # Iterate through each index in the search_indices except the last one
+        for index in searchIndexes[:-1]:
+            # Update the result to be the sublist at the current index
+            subList = subList[index]
+
+        # Append the value_to_append to the sublist at the last index in search_indices
+        subList[searchIndexes[-1]] = valueToSwap
 
     def loopFunc(self, task):
         taskContent = task[0]
