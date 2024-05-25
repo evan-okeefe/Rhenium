@@ -45,14 +45,13 @@ class language:
             lines = val.split("\n")
 
             for line in lines:
-                numSpaces = len(line)-len(line.lstrip())
+                numSpaces = len(line) - len(line.lstrip())
                 if line.startswith("//"):
                     line = line.lstrip("\n")
 
                 lineData = [line.lstrip(), i]
-                self.indentData.append(int(numSpaces/4))
+                self.indentData.append(int(numSpaces / 4))
                 self.rawCode.append(lineData)
-
 
     def clean(self):
         codeToClean = self.codeSplit
@@ -69,9 +68,9 @@ class language:
 
     # added code param, so I can choose the code to parse
     # added startLinePos to keep track of line pos in loops
-    def parse(self, code, startLinePos=0):
+    def parse(self, code):
         for task in code:
-            self.currentLine = task[1]+1
+            self.currentLine = task[1] + 1
             task[0] = task[0].lstrip()
             if self.jumpLine != 0:
                 self.jumpLine -= 1
@@ -94,6 +93,15 @@ class language:
                 # create variables
                 elif task[0].startswith("make"):
                     self.createVar(task)
+                # insert var to list
+                elif task[0].startswith("insert"):
+                    self.insertList(task)
+                # remove var from list
+                elif task[0].startswith("remove"):
+                    self.removeList(task)
+                # replace value in list
+                elif task[0].startswith("replace"):
+                    self.replaceList(task)
                 # write to variables
                 elif task[0].startswith("set"):
                     self.setVar(task)
@@ -150,68 +158,112 @@ class language:
         if content in self.vars:
             varType = self.vars[content][1]
             content = self.vars[content][0]
+            return content, varType
 
-        if varType == "NaN" and content.find("/") != -1:
+        if content.find("/") != -1:
             forwardSlashIndex = content.index("/")
             # grab content of var (cuts at declarationIndex)
             searchIndexes = content[forwardSlashIndex + 1:].strip()
+
             # grab name of var (cuts before declarationIndex)
             listName = content[:forwardSlashIndex].strip()
-            listContent = self.evaluateVar(listName)
+
             if listName not in self.vars:
                 language.error(f"List does not exist | list: {listName} | Line: {self.currentLine}")
 
-            searchIndexes = searchIndexes.split("/")
-            currentItem = None
-            for index in searchIndexes:
-                if currentItem is None:
-                    currentItem = listContent[index]
-                else:
-                    currentItem = currentItem[index]
+            listContent = self.vars[listName][0]
 
-            content = currentItem
+            searchIndexes = searchIndexes.split("/")
+            searchIndexes = [self.evaluateVar(index)[0] for index in searchIndexes]
+
+            currentVar = listContent
+            currentContent = None
+            for current_index in searchIndexes:
+                currentVar = currentVar[current_index][0]
+                if not isinstance(currentVar, list):
+                    break
+                currentContent = currentVar[current_index][1]
+
+            content = currentVar
+            varType = currentContent
+
+            return content, varType
 
         if varType == "NaN" and content.startswith('[') and content.endswith(']'):
-            varType = "list"
-            start_index = content.find("[")
-            end_index = content.find("]")
-            items = None
-            if start_index != -1 and end_index != -1:
-                # Extract content between parentheses
-                items = content[start_index + 1:end_index]
-            else:
-                language.error(f"Syntax Error | list: {content} | Line: {self.currentLine}")
-            items = items.split(",")
-            items = [item.strip() for item in items]
-            content = [self.evaluateVar(item) for item in items]
 
+            varType = "list"
+            content = content.strip()
+            items = content[1:len(content) - 1]
+
+            # looping through every char, so I can find where nested lists occur
+            currentVar = ""
+            listVar = []
+            openBracket = False
+
+            for i in range(len(items)):
+                if openBracket:
+                    if items[i - 1] == ']':
+                        openBracket = False
+                elif items[i] == ",":
+                    listVar.append(currentVar.strip())
+                    currentVar = ''
+                elif items[i] == "[":
+                    endBracketIndex = items.find("]")
+                    if endBracketIndex != -1:
+                        listVar.append(items[i:endBracketIndex + 1])
+                    else:
+                        language.error(f"No ']' found in nested list | Var: {content} | Line: {self.currentLine}")
+                    openBracket = True
+
+                else:
+                    currentVar += items[i]
+                    if i == len(items) - 1:
+                        listVar.append(currentVar.strip())
+
+            listContent = []
+
+            for item in listVar:
+                var = self.evaluateVar(item)
+                listContent.append([var[0], var[1]])
+            content = listContent
+
+            return content, varType
 
         # str detection
         if varType == "NaN" and content.startswith('"') and content.endswith('"'):
             varType = "str"
             content = content[1:-1]
+            return content, varType
 
         # checking if num is neg and getting rid of neg for simplicity
-        if varType == "NaN" and content.startswith('-') and content[1:].isdigit():
-            content = content.replace('-', '')
-            isNeg = True
-        else:
-            isNeg = False
 
         if varType == "NaN" and content.count('.') == 1:
             varType = "float"
+            if content.startswith('-') and content[1:].isdigit():
+                content = content.replace('-', '')
+                isNeg = True
+            else:
+                isNeg = False
             if isNeg:
                 content = '-' + content
             content = float(content)
+            return content, varType
 
         if varType == "NaN" and content.isdigit():
             varType = "int"
+            if content.startswith('-') and content[1:].isdigit():
+                content = content.replace('-', '')
+                isNeg = True
+            else:
+                isNeg = False
+
             if isNeg:
                 content = '-' + content
             content = int(content)
+            return content, varType
 
         if varType == "NaN":
-            return "error"
+            language.error(f"Var type NaN | Var: {content} | Line: {self.currentLine}")
 
         return content, varType
 
@@ -228,8 +280,7 @@ class language:
         varName = taskContent[:declarationIndex].strip()
 
         varEval = self.evaluateVar(varContent)
-        if varEval == "error":
-            language.error(f"Incorrect var declaration | Var: {varName} | Line: {self.currentLine}")
+
         # creating var key in vars dictionary
         self.vars[varName] = varEval
 
@@ -263,13 +314,11 @@ class language:
         except KeyError:
             language.error(f"Var does not exist | Var: {taskContent} | Line: {self.currentLine}")
 
-
     def createFunction(self, task):
         name = task[0]
         name = name.replace('func ', '', 1)
         pIndex = name.find("(")
         name = name[:pIndex]
-
 
         start_index = task[0].find("(")
         end_index = task[0].find(")")
@@ -282,7 +331,6 @@ class language:
         params = params.split(",")
         params = [param.strip() for param in params]
 
-
         funcCode = []
         for line in self.rawCode[self.currentLine:]:
             if self.indentData[line[1]] > self.indentData[self.currentLine - 1]:
@@ -293,7 +341,6 @@ class language:
         self.funcs[name] = [funcCode, params]
 
         self.jumpLine += len(funcCode)
-
 
     def callFunction(self, task):
         name = task[0]
@@ -318,12 +365,53 @@ class language:
         for i, param in enumerate(params):
             self.vars[self.funcs[name][1][i]] = self.evaluateVar(param)
 
-
-
         self.parse(self.funcs[name][0])
 
         for i, param in enumerate(params):
             del self.vars[self.funcs[name][1][i]]
+
+    def insertList(self, task):
+        taskContent = task[0]
+
+        taskContent = taskContent.replace('insert', '', 1)
+        # find index of var content using "=" char
+
+        forwardSlashIndex = taskContent.index("/")
+        # grab content of var (cuts at declarationIndex)
+        searchIndexes = taskContent[forwardSlashIndex + 1:].strip()
+
+        # grab name of var (cuts before declarationIndex)
+        listName = taskContent[:forwardSlashIndex].strip()
+
+        if listName not in self.vars:
+            language.error(f"List does not exist | list: {listName} | Line: {self.currentLine}")
+
+        def append_to_nested_list(num_list, search_indices, value_to_append):
+            # Initialize the variable to hold the current nested list
+            result = num_list
+
+            # Iterate through each index in the search_indices except the last one
+            for index in search_indices[:-1]:
+                # Update the result to be the sublist at the current index
+                result = result[index]
+
+            # Append the value_to_append to the sublist at the last index in search_indices
+            result[search_indices[-1]].append(value_to_append)
+
+        # Example usage
+        num_list = [1, [[10, 4, 3, 4], 19], 23]  # Original nested list
+        search_indices = [1, 0]  # Indices to specify the location to append
+        value_to_append = 5  # Value to append to the nested list
+
+        # Call the function to append the value to the specified location in the nested list
+        append_to_nested_list(num_list, search_indices, value_to_append)
+
+        # Print the modified nested list
+        print(num_list)  # Output should be [1, [[10, 4, 3, 4, 5], 19], 23]
+
+        searchIndexes = searchIndexes.split("/")
+        searchIndexes = [self.evaluateVar(index)[0] for index in searchIndexes]
+        currentItem = self.vars[listName][0]
 
 
     def loopFunc(self, task):
@@ -344,14 +432,14 @@ class language:
         # all the lines of code between the loop
         loopCode = []
         for line in self.rawCode[self.currentLine:]:
-            if self.indentData[line[1]] > self.indentData[self.currentLine-1]:
+            if self.indentData[line[1]] > self.indentData[self.currentLine - 1]:
                 loopCode.append(line)
             else:
                 break
 
         for i in range(loopLength[0]):
             self.vars[indexName] = [i, "int"]
-            self.parse(list(loopCode), self.currentLine)
+            self.parse(list(loopCode))
             if i == range(loopLength[0]):
                 del self.vars[indexName]
         # delete the index var after loop is over
@@ -361,7 +449,7 @@ class language:
     def calcVar(self, content):
         content = content.replace('calc', '', 1)
         c_content = content
-        splitContent = []
+
         usedOperons = []
 
         for i, char in enumerate(content.strip()):
@@ -431,15 +519,15 @@ class language:
                     variableName += char
             elif not variable:
                 if variableName == '':
-                    if char == ' ' and not (insideQuotes):
+                    if char == ' ' and not insideQuotes:
                         pass
-                    elif char == '+' and not (insideQuotes):
+                    elif char == '+' and not insideQuotes:
                         tempString += ' '
-                    elif char == ',' and not (insideQuotes):
+                    elif char == ',' and not insideQuotes:
                         tempString += ''
                     elif char == '"':
                         pass
-                    elif not (char.isnumeric()) and not (insideQuotes):
+                    elif not (char.isnumeric()) and not insideQuotes:
                         print(tempString)
                         print(char)
                         print(insideQuotes)
@@ -484,31 +572,30 @@ class language:
                 language.error(content)
         else:
             language.error(f'Unknown function in "rh" | Expression: {taskContent} | Line: {self.currentLine}')
-            
+
     def conditional(self, task):
         content = task[0].replace('if', '', 1)
-        
+
         splitContent = list(content.split(" "))
-        
+
         splitContent = [i for i in splitContent if i]
-        
+
         for i in range(len(splitContent)):
             if splitContent[i] in self.conditionals:
                 splitContent[i] = str(" " + splitContent[i] + " ")
             elif splitContent[i] in self.vars.keys():
                 splitContent[i] = str(self.vars[splitContent[i]][0])
-                
+
         modContent = ''.join(splitContent)
-        
+
         if eval(str(modContent)):
-        
+
             conCode = []
             for line in self.rawCode[self.currentLine:]:
-                if self.indentData[line[1]] > self.indentData[self.currentLine-1]:
+                if self.indentData[line[1]] > self.indentData[self.currentLine - 1]:
                     conCode.append(line)
                 else:
                     break
-                
-            self.parse(list(conCode), self.currentLine)
-            self.jumpLine = len(conCode)
 
+            self.parse(list(conCode))
+            self.jumpLine = len(conCode)
