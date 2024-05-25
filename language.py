@@ -45,11 +45,13 @@ class language:
             lines = val.split("\n")
 
             for line in lines:
+
                 numSpaces = len(line) - len(line.lstrip())
                 if line.startswith("//"):
                     line = line.lstrip("\n")
 
                 lineData = [line.lstrip(), i]
+                
                 self.indentData.append(int(numSpaces / 4))
                 self.rawCode.append(lineData)
 
@@ -353,11 +355,12 @@ class language:
 
         funcCode = []
         for line in self.rawCode[self.currentLine:]:
-            if line[0] != "":
-                if self.indentData[line[1]] > self.indentData[self.currentLine - 1]:
-                    funcCode.append(line)
-                else:
-                    break
+
+            if self.indentData[line[1]] > self.indentData[self.currentLine - 1]:
+                funcCode.append(line)
+            else:
+                break
+
 
         self.funcs[name] = [funcCode, params]
 
@@ -560,57 +563,20 @@ class language:
 
     def printUtils(self, content):
         # Make List
-        contentAsList = []
-        for element in range(0, len(content)):
-            contentAsList.append(content[element])
-        # Create Item To Print
-        value = ""
-        insideQuotes = False
-        variable = False
-        tempString = ""
-        variableName = ''
+        content = content.split("+")
+        content = [item.strip() for item in content]
 
-        for char in contentAsList:
-            if char == '"':
-                if insideQuotes:
-                    insideQuotes = False
-                else:
-                    insideQuotes = True
+        contentEval = []
+        for item in content:
+            itemEval = self.evaluateVar(item)
+            if itemEval[1] == "list":
+                newItem = [listItem[0] for listItem in itemEval[0]]
+                contentEval.append(str(newItem))
+            else:
+                contentEval.append(str(self.evaluateVar(item)[0]))
+        result = ''.join(contentEval)
+        print(result)
 
-            if char == "{":
-                variable = True
-            elif char == "}":
-                variable = False
-
-            if variable:
-                if char == '{' or char == '}':
-                    pass
-                else:
-                    variableName += char
-            elif not variable:
-                if variableName == '':
-                    if char == ' ' and not insideQuotes:
-                        pass
-                    elif char == '+' and not insideQuotes:
-                        tempString += ' '
-                    elif char == ',' and not insideQuotes:
-                        tempString += ''
-                    elif char == '"':
-                        pass
-                    elif not (char.isnumeric()) and not insideQuotes:
-                        print(tempString)
-                        print(char)
-                        print(insideQuotes)
-                        self.error(f"String outside of quotation marks | Line: {self.currentLine}")
-                    else:
-                        tempString += char
-                else:
-
-                    tempString += str(self.vars[variableName][0])
-                    variableName = ''
-        value += tempString
-
-        print(value)
 
     def debug(self, task):
         taskContent = task[0]
