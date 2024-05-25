@@ -70,6 +70,7 @@ class language:
     # added startLinePos to keep track of line pos in loops
     def parse(self, code):
         for task in code:
+
             self.currentLine = task[1] + 1
             task[0] = task[0].lstrip()
             if self.jumpLine != 0:
@@ -191,8 +192,12 @@ class language:
 
             currentVar = listContent
             currentContent = None
+
             for current_index in searchIndexes:
-                currentVar = currentVar[current_index][0]
+
+                cVar = currentVar[current_index][0]
+                cContent = currentVar[current_index][1]
+                currentVar = cVar
                 if not isinstance(currentVar, list):
                     break
 
@@ -348,10 +353,11 @@ class language:
 
         funcCode = []
         for line in self.rawCode[self.currentLine:]:
-            if self.indentData[line[1]] > self.indentData[self.currentLine - 1]:
-                funcCode.append(line)
-            else:
-                break
+            if line[0] != "":
+                if self.indentData[line[1]] > self.indentData[self.currentLine - 1]:
+                    funcCode.append(line)
+                else:
+                    break
 
         self.funcs[name] = [funcCode, params]
 
@@ -434,6 +440,7 @@ class language:
             language.error(f"List does not exist | list: {listName} | Line: {self.currentLine}")
 
         searchIndexes = searchIndexes.split("/")
+
         searchIndexes = [self.evaluateVar(index)[0] for index in searchIndexes]
 
         # Initialize the variable to hold the current nested list
@@ -504,8 +511,7 @@ class language:
         for i in range(loopLength[0]):
             self.vars[indexName] = [i, "int"]
             self.parse(list(loopCode))
-            if i == range(loopLength[0]):
-                del self.vars[indexName]
+        del self.vars[indexName]
         # delete the index var after loop is over
 
         self.jumpLine = len(loopCode)
@@ -649,17 +655,21 @@ class language:
                 splitContent[i] = str(" " + splitContent[i] + " ")
             elif splitContent[i] in self.vars.keys():
                 splitContent[i] = str(self.vars[splitContent[i]][0])
+        operators = ['>', '<', '>=', '<=', '==', '!=']
+        newContent = []
+        for item in splitContent:
+            if item.strip() not in operators:
 
-        modContent = ''.join(splitContent)
+                newContent.append(str(self.evaluateVar(item.strip())[0]))
+            else:
+                newContent.append(item)
 
-        if eval(str(modContent)):
-
-            conCode = []
-            for line in self.rawCode[self.currentLine:]:
-                if self.indentData[line[1]] > self.indentData[self.currentLine - 1]:
-                    conCode.append(line)
-                else:
-                    break
-
+        modContent = ''.join(newContent)
+        doCondition = eval(str(modContent))
+        conCode = []
+        for line in self.rawCode[self.currentLine:]:
+            if self.indentData[line[1]] > self.indentData[self.currentLine - 1]:
+                conCode.append(line)
+        if doCondition:
             self.parse(list(conCode))
-            self.jumpLine = len(conCode)
+        self.jumpLine = len(conCode)
